@@ -36,12 +36,32 @@ document.addEventListener("DOMContentLoaded", (event) => {
 
       if (response && typeof response === "object") {
         if (response.status !== undefined) {
+          let dialogMessageText = `Location Status: ${response.status}`;
+
+          if (
+            response.latitude !== undefined &&
+            response.longitude !== undefined
+          ) {
+            dialogMessageText += `\nLatitude: ${response.latitude.toFixed(
+              6
+            )}\nLongitude: ${response.longitude.toFixed(6)}`;
+            if (response.timestamp) {
+              dialogMessageText += `\nTime: ${new Date(
+                response.timestamp
+              ).toLocaleString()}`;
+            }
+          } else if (response.error) {
+            dialogMessageText += `\nError getting location: ${response.error}`;
+          } else if (response.status === "granted") {
+            dialogMessageText += `\nPermission granted, but location data unavailable.`;
+          }
+
           const dialogMessage = {
             class: "superAppBase",
             method: "showDialog",
             params: {
-              title: "Location Permission",
-              message: `Location status is: ${response.status}`,
+              title: "Location Information",
+              message: dialogMessageText,
             },
           };
 
@@ -56,13 +76,13 @@ document.addEventListener("DOMContentLoaded", (event) => {
                 dialogError
               );
               showStatus(
-                `Failed to request dialog. Status: ${response.status}`,
+                `Failed to request dialog. Details: ${dialogMessageText}`,
                 "error"
               );
             }
           } else {
             console.error("SuperAppChannel not available for dialog request.");
-            showStatus(`Bridge error. Status: ${response.status}`, "error");
+            showStatus(`Bridge error. Details: ${dialogMessageText}`, "error");
           }
         } else if (response.success !== undefined) {
           if (response.shown === true) {
